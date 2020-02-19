@@ -99,6 +99,12 @@
               "id":117,
               "priority":3,
               "maxspeed":50
+            },
+            {
+              "name":"bus_guideway",
+              "id":118,
+              "priority":3,
+              "maxspeed":50
             }
           ]
       }

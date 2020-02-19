@@ -14,3 +14,5 @@ target/
 *.log
 *.aux
 *~
+gtfs_scripts/mapmatching_input/*
+gtfs_scripts/mapmatching_results
