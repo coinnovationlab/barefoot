@@ -1,8 +1,5 @@
 # This script builds PostGIS geometries of the results of BMW Car IT's Barefoot Map-matching algorithm on GTFS bus routes.
 
-# Parameters:
-# Schema where the sequences of roads are stored.
-
 import psycopg2
 from configobj import ConfigObj
 
@@ -19,6 +16,7 @@ try:
 	
 	gtfs_schema = config.get('gtfs.schema')
 	mapmatching_schema = config.get('mapmatching.schema')
+	road_sequence_table = config.get('mapmatching.table.road-sequence')
 	
 	distances_table = config.get('mapmatching.table.distances')
 	indicators_table = config.get('mapmatching.table.indicators')
@@ -32,31 +30,22 @@ try:
 	# Creates a table that contains the distance between each point from the shapes.txt GTFS file and the map-matched route based on the GTFS stops.
 	cur.execute("""DROP TABLE IF EXISTS {0}.{1};""".format(mapmatching_schema, distances_table))
 	cur.execute("""
-		CREATE TABLE {0}.{1} AS
+		CREATE TABLE {0}.{2} AS
 			WITH mm_shapes AS (
-				WITH mm_trip_ids AS (
-					SELECT
-						SUBSTRING(shape_id, LENGTH('stops_') + 1) AS trip_id,
-						ST_Union(segment_geom) AS shape
-					FROM {0}.mm_bus_routes
-					WHERE shape_id LIKE 'stops\_%'
-					GROUP BY shape_id
-				)
 				SELECT
-					gt.shape_id,
-					mt.trip_id,
-					mt.shape
-				FROM mm_trip_ids mt LEFT JOIN {2}.trips gt
-					ON mt.trip_id = gt.trip_id
+					shape_id,
+					ST_Union(segment_geom) AS shape
+				FROM {0}.{3}
+				GROUP BY shape_id
 			)
 			SELECT
 				gs.shape_id,
-				shape_pt_sequence,
-				ST_SetSRID(ST_MakePoint(shape_pt_lon,shape_pt_lat),4326) AS geom,
-				ST_Distance(ST_Transform(ST_SetSRID(ST_MakePoint(shape_pt_lon,shape_pt_lat),4326), 32632), ST_Transform(ms.shape, 32632)) AS distance_meters
-			FROM {2}.shapes gs INNER JOIN mm_shapes ms
-				ON gs.shape_id = ms.shape_id;
-	""".format(mapmatching_schema, distances_table, gtfs_schema))
+				gs.shape_pt_sequence,
+				ST_SetSRID(ST_MakePoint(gs.shape_pt_lon,gs.shape_pt_lat),4326) AS geom,
+				ST_Distance(ST_Transform(ST_SetSRID(ST_MakePoint(gs.shape_pt_lon,gs.shape_pt_lat),4326), 32632), ST_Transform(ms.shape, 32632)) AS distance_meters
+			FROM {1}.shapes gs INNER JOIN mm_shapes ms
+				ON gs.shape_id = ms.shape_id::bigint;
+	""".format(mapmatching_schema, gtfs_schema, distances_table, road_sequence_table))
 	
 	conn.commit()
 	print("Generated table {0}.{1}, containing distances between each point from the shapes.txt GTFS file and the map-matched route based on the GTFS stops.".format(mapmatching_schema, distances_table))

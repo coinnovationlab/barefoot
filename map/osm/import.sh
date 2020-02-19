@@ -25,8 +25,8 @@ then
 	mode=$6
 elif [ "$#" -eq "0" ]
 then
-	input=/mnt/map/osm/bologna_ow.osm.pbf
-	database=busmatching
+	input=/mnt/map/osm/emilia_romagna-latest.osm.pbf
+	database=barefoot
 	user=osmuser
 	password=pass
 	config=/mnt/map/tools/road-types.json

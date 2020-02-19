@@ -15,4 +15,4 @@ target/
 *.aux
 *~
 gtfs_scripts/mapmatching_input/*
-gtfs_scripts/mapmatching_results
+gtfs_scripts/mapmatching_results/*

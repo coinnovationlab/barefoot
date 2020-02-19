@@ -27,17 +27,15 @@ import sys
 parser = optparse.OptionParser("batch.py [options]")
 parser.add_option("--host", dest="host", help="IP address of matcher.")
 parser.add_option("--port", type="int", dest="port", help="Port of matcher.")
-parser.add_option("--file", dest="file", help="JSON file with sample data.")
-parser.add_option("--shp_id", dest="shp_id", help="String to affix at the end of the output file's name. Shape ID is recommended.")
+parser.add_option("--input_file_name", dest="input_file_name", help="JSON file with sample data.")
 parser.add_option("--id", dest="id", help="Object id.")
 parser.add_option("--zone", dest="zone", default="+0000", help="Time zone in '(+/-)HHMM' format.")
 parser.add_option("--format", dest="format", default="geojson", help="Output format: geojson (default) | slimjson | debug")
-parser.add_option("--output_directory", dest="output_directory", default="mapmatching_results", help="Map-matching output directory")
-parser.add_option("--output_prefix", dest="output_prefix", default="mapmatched_", help="Map-matching output files prefix")
+parser.add_option("--output_file_name", dest="output_file_name", help="Map-matching output file name")
 
 (options, args) = parser.parse_args()
 
-if options.file is None or options.host is None or options.port is None or options.shp_id is None:
+if options.input_file_name is None or options.output_file_name is None or options.host is None or options.port is None:
     parser.print_help()
     exit(1)
 
@@ -45,7 +43,7 @@ if options.format not in ["geojson", "slimjson", "debug"]:
     parser.print_help()
     exit(1)
 
-with open(options.file) as jsonfile:
+with open(options.input_file_name) as jsonfile:
     samples = json.load(jsonfile)
 
 previous = None
@@ -58,9 +56,7 @@ tmp = "batch-%s" % random.randint(0, sys.maxint)
 file = open(tmp, "w")
 
 # Stores the results of map-matching to file
-if not os.path.exists(options.output_directory):
-    os.makedirs(options.output_directory)
-mapmatched_file = open(options.output_directory + '/' + options.output_prefix + options.shp_id + '.json', 'w+')
+mapmatched_file = open(options.output_file_name, 'w+')
 
 try:
     try:

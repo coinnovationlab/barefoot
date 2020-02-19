@@ -1,9 +1,5 @@
 # This script reads the map-matched routes files from the input folder, and writes the sequence of roads each route goes through in the <schema>.<table> table.
 
-# Parameters:
-# Schema to contain the sequence of roads.
-# Directory to take the map-matched routes files from. Will search for "mapmatched_shapes" if not provided.
-
 import sys
 import psycopg2
 import os
@@ -51,6 +47,11 @@ try:
 			if line.startswith('[{"seqprob"'): # Line that contains the information necessary to build a sequence of way IDs
 				mm_result = json.loads(line)
 		
+		if not mm_result: # File is invalid: no map-matching result found
+			print("No map-matching information found in {0}, skipping.".format(file_name))
+			progress += 1
+			continue
+		
 		road_heading_sequence = []
 		previous_road = None # Used to avoid duplicates
 		previous_heading = None # Used to avoid situations where a (wrong) road is entered and exited immediately
@@ -80,7 +81,6 @@ try:
 					road_heading_sequence.append(rh)
 					previous_road = road
 					previous_heading = heading
-		cur = conn.cursor()
 		segment_sequence = 1
 		for segment in road_heading_sequence: # Inserts the sequence of way IDs into the database
 			cur.execute("""
