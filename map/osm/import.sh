@@ -30,7 +30,7 @@ then
 	user=osmuser
 	password=pass
 	config=/mnt/map/tools/road-types.json
-	mode=slim
+	mode=normal
 else
 	echo "Error. Say '$0 osm-file database user password bfmap-config slim|normal' or run with defaults '$0'."
 	exit

@@ -103,8 +103,19 @@
             {
               "name":"bus_guideway",
               "id":118,
-              "priority":3,
+              "priority":2,
               "maxspeed":50
+            }
+          ]
+      },
+      {
+        "tag":"bus","id":2,"values":
+          [
+            {
+              "name":"yes",
+              "id":201,
+              "priority":2,
+              "maxspeed":20
             }
           ]
       }

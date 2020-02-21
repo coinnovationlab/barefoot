@@ -120,15 +120,24 @@ def type(config, tags):
 
 
 def is_oneway(tags):
+    bus_oneway = False
     if ("oneway" in tags.keys() and tags["oneway"] == "yes") \
             or ("oneway" in tags.keys() and tags["oneway"] == "true") \
             or ("oneway" in tags.keys() and tags["oneway"] == "1") \
             or ("junction" in tags.keys()) \
             or ("roundabout" in tags.keys()):
-        return True
-    else:
-        return False
-
+        bus_oneway = True
+    # Checks if buses are allowed both ways
+    if ("oneway:bus" in tags.keys() and tags["oneway:bus"] == "no") \
+            or ("oneway:psv" in tags.keys() and tags["oneway:psv"] == "no") \
+            or ("psv" in tags.keys() and tags["psv"] == "opposite_lane") \
+            or ("psv:backward" in tags.keys() and tags["psv:backward"] == "yes") \
+            or ("bus:lanes:backward" in tags.keys() and tags["bus:lanes:backward"] != "0" and tags["bus:lanes:backward"] != "no") \
+            or ("psv:lanes:backward" in tags.keys() and tags["psv:lanes:backward"] != "0" and tags["psv:lanes:backward"] != "no") \
+            or ("lanes:bus:backward" in tags.keys() and tags["lanes:bus:backward"] != "0" and tags["lanes:bus:backward"] != "no") \
+            or ("lanes:psv:backward" in tags.keys() and tags["lanes:psv:backward"] != "0" and tags["lanes:psv:backward"] != "no"):
+        bus_oneway = False
+    return bus_oneway
 
 def maxspeed(tags):
     # maxspeed_forward = int(config[key][value][2])
