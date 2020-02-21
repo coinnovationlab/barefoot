@@ -8,10 +8,10 @@ This README file describes the additions and changes made to the original librar
 
 ## Map-matching for buses
 
-The goal of this fork is to experiment the results of using Barefoot to map-match the data on bus routes contained in **GTFS files** to OpenStreetMap's road map.
+The goal of this fork is to experiment using Barefoot to map-match the data on bus routes contained in **GTFS files** to OpenStreetMap's road map.
 
 Barefoot was designed for cars. Some roads are restricted to buses and cannot be traversed by cars. Similarly, some one-way streets have a lane dedicated to public transport vehicles that allows them to travel the opposite way.\
-Changes were made to the original library so that the aforementioned streets may be traversed properly by buses.
+Changes were made to the original library so that the aforementioned streets may be traversed by buses accordingly.
 
 Barefoot expects its input files to be GPS coordinates recorded by a vehicle. GTFS files contain coordinates often inserted by hand by drawing on a map, that may be used to fake GPS coordinates for Barefoot to use.
 
@@ -23,7 +23,6 @@ While it may seem more logical to use *shapes.txt* to map-match the bus route, a
 
 As both files contain imprecise coordinates that place points only roughly in the right spot, *stops.txt* files tend to generate less errors, as less points are present.\
 In addition, *shapes.txt* files often contain points on the "elbows" of turns as well as roundabouts, where imprecise placement is highly likely to generate (sometimes major) errors. Bus stops are very unlikely to be placed in such spots and tend to be located in straight segments of the route, allowing for a smoother reconstruction of the actual path.
-Finally, *shapes.txt* is not always present, as the standard considers it optional.
 
 
 ## Requirements
@@ -60,7 +59,7 @@ The following page from OpenStreetMap's wiki offers a long list of possible sour
 
 Try to find the smallest extract possible that fits your needs. Larger files will slow down both the preparation of Barefoot and the execution of the map-matching procedure, so it's preferable for your extract to not include large areas outside the general vicinity of GTFS points.
 
-Regardless of the mirror used, the extract needs to be in **.osm.pbf** format. If the extract you need only comes in **.osm** format, [osmConvert](https://wiki.openstreetmap.org/wiki/Osmconvert) is easy to use and can convert it. [OSMosis](https://wiki.openstreetmap.org/wiki/Osmosis) offers a similar functionality and also allows to extract a smaller portion of the roadmap, in case the extract you found was excessively large.
+Regardless of the mirror used, the extract needs to be in **.osm.pbf** format. If the extract you need only comes in **.osm** format, [osmConvert](https://wiki.openstreetmap.org/wiki/Osmconvert) is easy to use and can convert it. [OSMosis](https://wiki.openstreetmap.org/wiki/Osmosis) offers a similar functionality and also allows to take a smaller portion of the roadmap, in case the extract you found was excessively large.
 
 
 ### Configuring Barefoot
@@ -68,7 +67,7 @@ Regardless of the mirror used, the extract needs to be in **.osm.pbf** format. I
 After downloading this repository to your machine, some files need to be configured.
 
 Place the *.osm.pbf* extract you obtained earlier inside the **/barefoot/map/osm** directory.\
-Open **import.sh** from the same directory with any text editor and change the value of `input` with the name of the *.osm.pbf* file. Save this file.
+Open **import.sh** from the same directory with any text editor and replace the value of `input` with the name of the *.osm.pbf* file. Save this file.
 
 Open **/barefoot/config/busmatching.properties** with a text editor. This file contains various configurations used by the matcher server and by the Python scripts that prepare GTFS data, build geometries out of the map-matching procedure's results and allow to evaluate them.\
 The only value that *must* be changed is `gtfs.path`
@@ -79,12 +78,12 @@ If you changed any parameter (other than `input`) from *import.sh*, some propert
 - `database.user`: Root user in the map server. Must match the value of **user** set in *barefoot/map/osm/import.sh*. Both are set to `osmuser` as default.
 - `database.password`: Password of root user in the map server. Must match the value of **password** set in *barefoot/map/osm/import.sh*. Both are set to `pass` as default.
 
-Finally, if you plan on running the map server (which will run inside a Docker container) and GTFS-related Python scripts in a different machine than the one that will host the matcher server, you should change `database.host` accordingly. Otherwise, leave its value to `localhost`.
+Finally, if you plan on running the map server (which will run inside a Docker container) in a different machine than the one that will host the matcher server, you should change `database.host` accordingly. Otherwise, leave its value to `localhost`.
 - `database.host`: Host of the map server. The map server will be started after all configurations are complete and will run inside a Docker container. If you plan on running the matcher server, as well as the Python scripts, on the same machine where the container is running, leave the `localhost` value.
 
 Other values are used by the Python scripts contained in the *gtfs_scripts* folder and do not need to be changed. Save the *busmatching.properties* file with the edits you just made.
 
-In case some other software is using port *1234*, change the value of `server.port` in the **server.properties** file to some open port.
+In case some other software is using port *1234*, change the value of `server.port` in the **server.properties** file to some available port.
 
 
 ## Running Barefoot
@@ -107,7 +106,7 @@ Now that the image for the map server has been created, run the map server:
 ```
 docker run -it -p 5431:5432 --name="barefoot-bus" -v <path_to_barefoot_repository>/map/:/mnt/map barefoot-map
 ```
-If you receive an error because port *5431* is already in use, replace `5431` with any port not in use.
+If you receive an error because port *5431* is already in use, replace `5431` with any port not in use and update *busmatching.properties* accordingly.
 Replace `<path_to_barefoot_repository>` with the absolute path to the repository you downloaded.
 
 After a brief pause, the container will be running and the terminal will allow you to explore it.\
@@ -132,7 +131,7 @@ Once you have confirmed that the mount was successful, run the following (assumi
 ```
 bash osm/import.sh
 ```
-If it doesn't work, just open *import.sh* with any text editor, copy its entire content and paste it in the terminal to execute it.
+If it doesn't work, just open *import.sh* with any text editor, copy its entire content and paste it into the terminal to execute it.
 
 It may take a while to complete, depending on the size of the OpenStreetMap extract you provided (roughly 30 minutes for 150MB).
 
@@ -151,7 +150,7 @@ It should be done quickly. Once it has finished, run the following:
 ```
 java -jar target/barefoot-0.1.5-matcher-jar-with-dependencies.jar --debug config/server.properties config/busmatching.properties
 ```
-The matcher server will soon be running, writing a message about how it's ready and listening on port 1234.
+The matcher server will soon be running, writing a message saying it is ready and listening on port 1234.
 
 
 ## Executing Barefoot on GTFS data
@@ -159,15 +158,15 @@ The matcher server will soon be running, writing a message about how it's ready 
 Now that both the map server and the matcher server are running, Barefoot is ready to map-match routes.\
 The GTFS *.txt* files are not in the format Barefoot expects, but executing the scripts in the **gtfs_scripts** folder will take care of adapting them, executing map-matching and presenting the results.
 
-These scripts require **Python 2.7** to be installed, which should be installed already, as it is the same version needed by the map server. Open a terminal and change directory to the Barefoot repository you downloaded.
+These scripts require **Python 2.7**, which should be installed already, as it is the same version needed by the map server. Open a terminal and change directory to the Barefoot repository you downloaded.
 
 Run `python bf_read_gtfs.py`. This will read the GTFS files you provided in the path indicated by the **gtfs.path** property of the *busmatching.properties* file. It may take a while (roughly 20 minutes for 60MB).
 
 Run `python bf_convert_shapes.py`. This will create a folder named **mapmatching_input**, containing all bus routes adapted and ready to be used by Barefoot.
 
-Run `python bf_mapmatching.py`. This will execute the map-matching procedure on all bus route shapes found inside the **mapmatching_input** folder, and store the results in a new folder, named **mapmatching_results**. It may take a while (roughly 6 seconds per shape).
+Run `python bf_mapmatching.py`. This will execute the map-matching procedure on all bus route shapes found inside the **mapmatching_input** folder, and store the results into a new folder, named **mapmatching_results**. It may take a while (roughly 6 seconds per shape).
 
-Run `python bf_road_sequence.py`. This will read the files within the **mapmatching_results** folder to build PostGIS geometries and store them inside the same database as the map server's.
+Run `python bf_road_sequence.py`. This will read the files within the **mapmatching_results** folder to build PostGIS geometries and store them inside the map server's database.
 
 Run `python bf_check_mm.py`. This will create some tables inside the map server's database containing quality indicators for the map-matched routes.
 
@@ -187,6 +186,6 @@ The tables created by the scripts are as follows:
 - `gtfs.stops`: GTFS data from *stops.txt*
 - `gtfs.trips`: GTFS data from *trips.txt*
 - `gtfs.shape_stops`: PostGIS geometries of all the stops that each route makes
-- `busmatching.mm_bus_routes`: PostGIS geometries of the results of the map-matching
+- `busmatching.mm_bus_routes`: PostGIS geometries of the results of map-matching
 - `busmatching.distances_gtfs_mm`: PostGIS geometries of the points defined in *shapes.txt*, along with a column indicating distance of the GTFS point from the map-matched shape
 - `busmatching.quality_indicators_mm`: Various indicators for each shape to help understanding the quality of the result of map-matching
