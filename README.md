@@ -54,6 +54,9 @@ The two following websites act as frequently-updated mirrors for OpenStreetMap e
 - https://download.geofabrik.de
 - http://download.openstreetmap.fr/extracts/
 
+Overpass may be used to extract small areas for testing purposes, but its use is discouraged for large areas:
+- https://overpass-turbo.eu/
+
 The following page from OpenStreetMap's wiki offers a long list of possible sources to download extracts:
 - https://wiki.openstreetmap.org/wiki/Planet.osm
 
@@ -156,7 +159,7 @@ The matcher server will soon be running, writing a message saying it is ready an
 ## Executing Barefoot on GTFS data
 
 Now that both the map server and the matcher server are running, Barefoot is ready to map-match routes.\
-The GTFS *.txt* files are not in the format Barefoot expects, but executing the scripts in the **gtfs_scripts** folder will take care of adapting them, executing map-matching and presenting the results.
+The GTFS *.txt* files are not in the format Barefoot expects: the scripts in the **gtfs_scripts** folder are designed to adapt them, execute map-matching and present the results.
 
 These scripts require **Python 2.7**, which should be installed already, as it is the same version needed by the map server. Open a terminal and change directory to the Barefoot repository you downloaded.
 
@@ -189,3 +192,9 @@ The tables created by the scripts are as follows:
 - `busmatching.mm_bus_routes`: PostGIS geometries of the results of map-matching
 - `busmatching.distances_gtfs_mm`: PostGIS geometries of the points defined in *shapes.txt*, along with a column indicating distance of the GTFS point from the map-matched shape
 - `busmatching.quality_indicators_mm`: Various indicators for each shape to help understanding the quality of the result of map-matching
+
+
+## Observations
+When a bus route has frequent stops, the results tend to be really good, as stops are generally located in straight segments that do not lead the map-matching procedure to commit major errors even if coordinates are imprecise.
+
+However, buses that travel a long distance without taking any stops (such as routes that connect a small town to a larger one through a long section on the highway) lead to a broken map-matched path, as such segments are not retraced by the procedure.
