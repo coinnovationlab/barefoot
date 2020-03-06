@@ -195,6 +195,8 @@ The tables created by the scripts are as follows:
 
 
 ## Observations
-When a bus route has frequent stops, the results tend to be really good, as stops are generally located in straight segments that do not lead the map-matching procedure to commit major errors even if coordinates are imprecise.
+When a bus route has frequent stops, the results tend to be really good, as stops are generally located in straight segments that do not lead the map-matching procedure to commit major errors, even if coordinates are imprecise.
 
-However, buses that travel a long distance without taking any stops (such as routes that connect a small town to a larger one through a long section on the highway) lead to a broken map-matched path, as such segments are not retraced by the procedure.
+However, buses that travel a long distance without taking any stops (such as routes meant to connect a small town to a larger one) often lead to a path very different from the actual one, or a broken path if such segments are not retraced by the procedure at all.
+
+When a broken path is returned, configuring the *matcher.distance.max* parameter in [server.properties](config/server.properties) may make the algorithm return a full path instead, but some routes seem to lead to a broken path regardless of configurations.
