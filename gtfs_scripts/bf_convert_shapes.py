@@ -75,7 +75,7 @@ try:
 		shape_id = shape_ids_tab[i][0] # Shape ID
 		print("Converting {0} ({1}/{2})...".format(shape_id, i+1, n_of_shapes))
 		# Longitude, latitude, and a timestamp are necessary for BMW Car IT's Barefoot map-matching algorithm to work.
-		# Timestamps are "fake", built by adding 2 minutes for each subsequent point that describes the shape.
+		# Timestamps are "fake", built by adding 2 minutes for each kilometer.
 		cur.execute("""
 			SELECT 	
 				curr.stop_lon,
