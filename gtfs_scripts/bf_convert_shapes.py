@@ -23,6 +23,8 @@ try:
 	shape_stops_table = config.get('gtfs.derived-table.shape-stops')
 	shapes_directory = config.get('mapmatching.input.directory')
 	shapes_prefix = config.get('mapmatching.input.prefix')
+	epsg = config.get('mapmatching.coordinates.epsg')
+	minutes_per_km = config.get('mapmatching.interval.minutes-per-km')
 	
 	conn = psycopg2.connect(database=db_name, user=db_user, password=db_password, host=db_host, port=db_port)
 	cur = conn.cursor()
@@ -76,13 +78,21 @@ try:
 		# Timestamps are "fake", built by adding 2 minutes for each subsequent point that describes the shape.
 		cur.execute("""
 			SELECT 	
-				stop_lon,
-				stop_lat,
-				'2018-01-01 10:00:00'::timestamp AT TIME ZONE 'Europe/Rome' + (stop_sequence * interval '2 minutes') AS timestamp
-			FROM {0}.{1}
-			WHERE shape_id = '{2}'
-			ORDER BY stop_sequence;
-		""".format(gtfs_schema, shape_stops_table, shape_id))
+				curr.stop_lon,
+				curr.stop_lat,
+				CASE WHEN curr.stop_sequence = 1 THEN '2018-01-01 10:00:00'::timestamp AT TIME ZONE 'Europe/Rome'
+					ELSE '2018-01-01 10:00:00'::timestamp AT TIME ZONE 'Europe/Rome' + (interval '{3} minutes' *
+						SUM(CEILING(ST_Distance(
+							ST_Transform(ST_SetSRID(ST_MakePoint(curr.stop_lon, curr.stop_lat), 4326), {4}),
+							ST_Transform(ST_SetSRID(ST_MakePoint(prev.stop_lon, prev.stop_lat), 4326), {4}))
+						/1000)) OVER (PARTITION BY curr.shape_id ORDER BY curr.stop_sequence)
+					)
+				END AS timestamp
+			FROM {0}.{1} curr LEFT JOIN {0}.{1} prev
+			ON curr.shape_id = prev.shape_id AND curr.stop_sequence = (prev.stop_sequence + 1)
+			WHERE curr.shape_id = '{2}'
+			ORDER BY curr.stop_sequence;
+		""".format(gtfs_schema, shape_stops_table, shape_id, minutes_per_km, epsg))
 		shape_tab = cur.fetchall()
 		
 		shape_file = open("{0}/{1}{2}.json".format(shapes_directory, shapes_prefix, shape_id), 'w+') # Output file will be written in the shapes directory

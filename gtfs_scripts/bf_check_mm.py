@@ -28,6 +28,8 @@ try:
 	mid_threshold = config.get('mapmatching.indicators.mid_threshold')
 	select_limit = config.get('mapmatching.indicators.limit')
 	
+	epsg = config.get('mapmatching.coordinates.epsg')
+	
 	conn = psycopg2.connect(database=db_name, user=db_user, password=db_password, host=db_host, port=db_port)
 	cur = conn.cursor()
 	
@@ -68,10 +70,10 @@ try:
 				gs.shape_id,
 				gs.shape_pt_sequence,
 				ST_SetSRID(ST_MakePoint(gs.shape_pt_lon,gs.shape_pt_lat),4326) AS geom,
-				ST_Distance(ST_Transform(ST_SetSRID(ST_MakePoint(gs.shape_pt_lon,gs.shape_pt_lat),4326), 32632), ST_Transform(ms.shape, 32632)) AS distance_meters
+				ST_Distance(ST_Transform(ST_SetSRID(ST_MakePoint(gs.shape_pt_lon,gs.shape_pt_lat),4326), {4}), ST_Transform(ms.shape, {4})) AS distance_meters
 			FROM {1}.shapes gs INNER JOIN mm_shapes ms
 				ON gs.shape_id = ms.shape_id::bigint;
-	""".format(mapmatching_schema, gtfs_schema, distances_table, road_sequence_table))
+	""".format(mapmatching_schema, gtfs_schema, distances_table, road_sequence_table, epsg))
 	
 	conn.commit()
 	print("Generated table {0}.{1}, containing distances between each point from the shapes.txt GTFS file and the map-matched route based on the GTFS stops.".format(mapmatching_schema, distances_table))
@@ -94,10 +96,10 @@ try:
 			GROUP BY shape_id
 		)
 		UPDATE {2}.{3} AS gs
-		SET distance_meters = ST_Distance(ST_Transform(gs.geom, 32632), ST_Transform(ms.shape, 32632))
+		SET distance_meters = ST_Distance(ST_Transform(gs.geom, {4}), ST_Transform(ms.shape, {4}))
 		FROM mm_shapes AS ms
 		WHERE gs.shape_id = ms.shape_id::bigint;
-	""".format(mapmatching_schema, road_sequence_table, gtfs_schema, shape_stops_table))
+	""".format(mapmatching_schema, road_sequence_table, gtfs_schema, shape_stops_table, epsg))
 	conn.commit()
 	print("Added column to table {0}.{1} to contain distance between each stop from the stops.txt GTFS file and map-matched routes that make a corresponding stop.".format(gtfs_schema, shape_stops_table))
 	
