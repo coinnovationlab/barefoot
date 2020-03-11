@@ -192,7 +192,6 @@ The tables created by the scripts are as follows:
 - `busmatching.mm_bus_routes`: PostGIS geometries of the results of map-matching
 - `busmatching.distances_gtfs_mm`: PostGIS geometries of the points defined in *shapes.txt*, along with a column indicating distance of the GTFS point from the map-matched shape
 - `busmatching.quality_indicators_mm`: Various indicators for each shape to help understanding the quality of the result of map-matching
-- `busmatching.segment_route_count_mm`: Lists all segments traversed by at least a route, along with the number of routes that travel through it and the OSM ID of the street the segment belongs to in the underlying OpenStreetMap extract.
 
 
 ## Observations
