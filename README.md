@@ -183,7 +183,17 @@ database.user=osmuser
 database.password=pass
 ```
 
-The tables created by the scripts are as follows:
+The tables created by Barefoot are as follows:
+- `bfmap_ways`: Segments of the topology. Each segment has its own ID, along with the ID used by OSM for the original road.
+- `nodes`: Nodes of the topology.
+- `relation_members`: Relations.
+- `relations`: Relations.
+- `temp_ways`: Ways extracted from the OSM file. Each record is a way, it includes the PostGIS geometry and lists the tags associated with it (in a custom structure) and the IDs of the nodes that form it.
+- `users`: Users.
+- `way_nodes`: Sequences of nodes for each way. Each record is a tuple (way_id, node_id, sequence_id). Generated from the `nodes` field of `ways`.
+- `ways`: Ways extracted from the OSM file. Each record is a way and lists the tags associated with it (in a custom structure) and the IDs of the nodes that form it.
+
+The tables created by the Python scripts are as follows:
 - `gtfs.shapes`: GTFS data from *shapes.txt*
 - `gtfs.stop_times`: GTFS data from *stop_times.txt*
 - `gtfs.stops`: GTFS data from *stops.txt*
