@@ -23,8 +23,6 @@ try:
 	shape_stops_table = config.get('gtfs.derived-table.shape-stops')
 	shapes_directory = config.get('mapmatching.input.directory')
 	shapes_prefix = config.get('mapmatching.input.prefix')
-	epsg = config.get('mapmatching.coordinates.epsg')
-	minutes_per_km = config.get('mapmatching.interval.minutes-per-km')
 	
 	conn = psycopg2.connect(database=db_name, user=db_user, password=db_password, host=db_host, port=db_port)
 	cur = conn.cursor()
@@ -75,24 +73,20 @@ try:
 		shape_id = shape_ids_tab[i][0] # Shape ID
 		print("Converting {0} ({1}/{2})...".format(shape_id, i+1, n_of_shapes))
 		# Longitude, latitude, and a timestamp are necessary for BMW Car IT's Barefoot map-matching algorithm to work.
-		# Timestamps are "fake", built by adding 2 minutes for each kilometer.
+		# Timestamps are built by taking the time from GTFS
 		cur.execute("""
-			SELECT 	
+			SELECT
 				curr.stop_lon,
 				curr.stop_lat,
-				CASE WHEN curr.stop_sequence = 1 THEN '2018-01-01 10:00:00'::timestamp AT TIME ZONE 'Europe/Rome'
-					ELSE '2018-01-01 10:00:00'::timestamp AT TIME ZONE 'Europe/Rome' + (interval '{3} minutes' *
-						SUM(CEILING(ST_Distance(
-							ST_Transform(ST_SetSRID(ST_MakePoint(curr.stop_lon, curr.stop_lat), 4326), {4}),
-							ST_Transform(ST_SetSRID(ST_MakePoint(prev.stop_lon, prev.stop_lat), 4326), {4}))
-						/1000)) OVER (PARTITION BY curr.shape_id ORDER BY curr.stop_sequence)
-					)
-				END AS timestamp
-			FROM {0}.{1} curr LEFT JOIN {0}.{1} prev
-			ON curr.shape_id = prev.shape_id AND curr.stop_sequence = (prev.stop_sequence + 1)
+				'2018-01-01 ' || st.arrival_time || '+00:00' AS timestamp
+			FROM {0}.{1} curr
+				LEFT JOIN {0}.{1} prev
+					ON curr.shape_id = prev.shape_id AND curr.stop_sequence = (prev.stop_sequence + 1)
+				LEFT JOIN {0}.stop_times st
+					ON curr.trip_id = st.trip_id AND curr.stop_id = st.stop_id
 			WHERE curr.shape_id = '{2}'
 			ORDER BY curr.stop_sequence;
-		""".format(gtfs_schema, shape_stops_table, shape_id, minutes_per_km, epsg))
+		""".format(gtfs_schema, shape_stops_table, shape_id))
 		shape_tab = cur.fetchall()
 		
 		shape_file = open("{0}/{1}{2}.json".format(shapes_directory, shapes_prefix, shape_id), 'w+') # Output file will be written in the shapes directory
