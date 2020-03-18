@@ -5,6 +5,20 @@ This fork is part of an experiment that uses Barefoot to match bus routes define
 
 This README file describes the additions and changes made to the original library and how to use it to map-match GTFS bus routes. You can find more information on Barefoot in the [original README file](barefoot_README.md).
 
+## Table of contents
+
+* [Map-matching for buses](#map-matching-for-buses)
+* [Requirements](#requirements)
+    * [GTFS](#gtfs)
+    * [OpenStreetMap extract](#openstreetmap-extract)
+    * [Configuring Barefoot](#configuring-barefoot)
+* [Running Barefoot](#running-barefoot)
+    * [Running the map server](#running-the-map-server)
+    * [Running the matcher server](#running-the-matcher-server)
+* [Executing Barefoot on GTFS data](#executing-barefoot-on-gtfs-data)
+    * [Tables produced](#tables-produced)
+* [Observations](#observations)
+
 
 ## Map-matching for buses
 
@@ -172,6 +186,9 @@ Run `python bf_mapmatching.py`. This will execute the map-matching procedure on 
 Run `python bf_road_sequence.py`. This will read the files within the **mapmatching_results** folder to build PostGIS geometries and store them inside the map server's database.
 
 Run `python bf_check_mm.py`. This will create some tables inside the map server's database containing quality indicators for the map-matched routes.
+
+
+### Tables produced
 
 Once all scripts have been executed, several new tables will have been created inside the map server's PostGIS database. You can connect to the database using the same credentials as the ones listed in the *busmatching.properties* file.\
 If you didn't change them, they should be:
